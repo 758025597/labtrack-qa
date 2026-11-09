@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Solicitudes pendientes')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="contenido">
+    <h1 id="titulo-solicitudes">Solicitudes pendientes</h1>
+
+    <div id="mensaje-exito" class="alerta alerta-exito" th:if="${mensajeExito}" th:text="${mensajeExito}"></div>
+    <div id="mensaje-error" class="alerta alerta-error" th:if="${mensajeError}" th:text="${mensajeError}"></div>
+
+    <p id="mensaje-vacio" class="alerta alerta-info" th:if="${#lists.isEmpty(solicitudes)}">No hay solicitudes pendientes.</p>
+
+    <table id="tabla-solicitudes" class="tabla" th:unless="${#lists.isEmpty(solicitudes)}">
+        <thead>
+        <tr><th>Nombre del estudiante</th><th>Equipo</th><th>Fecha/Hora solicitada</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+        <tr class="fila-solicitud" th:each="s : ${solicitudes}" th:id="'solicitud-' + ${s.id}">
+            <td th:text="${s.usuario.nombre + ' (' + s.usuario.codigo + ')'}"></td>
+            <td th:text="${s.equipo.codigo + ' – ' + s.equipo.nombre}"></td>
+            <td th:text="${#temporals.format(s.fecha, 'dd/MM/yyyy') + ' ' + #temporals.format(s.horaInicio, 'HH:mm') + ' - ' + #temporals.format(s.horaFin, 'HH:mm')}"></td>
+            <td class="acciones">
+                <form method="post" th:action="@{/admin/solicitudes/{id}/aprobar(id=${s.id})}">
+                    <button type="submit" class="boton btn-aprobar" th:id="'aprobar-' + ${s.id}">Aprobar</button>
+                </form>
+                <form method="post" th:action="@{/admin/solicitudes/{id}/rechazar(id=${s.id})}" class="form-rechazo" novalidate>
+                    <input type="text" name="motivo" th:id="'motivo-' + ${s.id}" placeholder="Motivo del rechazo">
+                    <button type="submit" class="boton btn-rechazar" th:id="'rechazar-' + ${s.id}">Rechazar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

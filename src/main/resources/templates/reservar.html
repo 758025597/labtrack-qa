@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Reservar equipo')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="contenido">
+    <h1>Reservar equipo</h1>
+    <p th:if="${equipo}" id="equipo-seleccionado">
+        <strong th:text="${equipo.codigo}"></strong> – <span th:text="${equipo.nombre}"></span>
+        (<span th:text="${equipo.categoria.etiqueta}"></span>)
+    </p>
+
+    <div id="mensaje-error" class="alerta alerta-error" th:if="${mensajeError}" th:text="${mensajeError}"></div>
+
+    <form id="form-reserva" method="post" th:action="@{/reservas}" th:unless="${bloqueado}" novalidate class="formulario">
+        <input type="hidden" name="equipo" th:value="${equipo.codigo}">
+        <label for="fecha">Fecha de uso</label>
+        <input id="fecha" name="fecha" type="date" th:value="${fecha}">
+        <label for="hora-inicio">Hora de inicio</label>
+        <input id="hora-inicio" name="horaInicio" type="time" th:value="${horaInicio}">
+        <label for="hora-fin">Hora de fin</label>
+        <input id="hora-fin" name="horaFin" type="time" th:value="${horaFin}">
+        <button id="btn-reservar" type="submit">Solicitar reserva</button>
+    </form>
+    <p><a id="link-volver" th:href="@{/catalogo}">← Volver al catálogo</a></p>
+</main>
+</body>
+</html>

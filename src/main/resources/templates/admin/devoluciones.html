@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Devoluciones')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="contenido">
+    <h1 id="titulo-devoluciones">Registrar devolución</h1>
+
+    <div id="mensaje-exito" class="alerta alerta-exito" th:if="${mensajeExito}" th:text="${mensajeExito}"></div>
+    <div id="mensaje-error" class="alerta alerta-error" th:if="${mensajeError}" th:text="${mensajeError}"></div>
+
+    <form id="form-buscar" method="get" th:action="@{/admin/devoluciones}" class="filtro">
+        <label for="buscar">Buscar reserva activa</label>
+        <input id="buscar" name="q" type="text" th:value="${q}" placeholder="Código de estudiante o de equipo">
+        <button id="btn-buscar" type="submit">Buscar</button>
+    </form>
+
+    <p id="sin-resultados" class="alerta alerta-info" th:if="${#lists.isEmpty(reservas)}">Sin resultados</p>
+
+    <table id="tabla-devoluciones" class="tabla" th:unless="${#lists.isEmpty(reservas)}">
+        <thead>
+        <tr><th>Estudiante</th><th>Equipo</th><th>Fecha</th><th>Horario</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+        <tr class="fila-reserva" th:each="r : ${reservas}" th:id="'reserva-' + ${r.id}">
+            <td th:text="${r.usuario.nombre + ' (' + r.usuario.codigo + ')'}"></td>
+            <td th:text="${r.equipo.codigo + ' – ' + r.equipo.nombre}"></td>
+            <td th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></td>
+            <td th:text="${#temporals.format(r.horaInicio, 'HH:mm') + ' - ' + #temporals.format(r.horaFin, 'HH:mm')}"></td>
+            <td>
+                <form method="post" th:action="@{/admin/devoluciones/{id}(id=${r.id})}">
+                    <button type="submit" class="boton btn-devolver" th:id="'devolver-' + ${r.id}">Marcar Devolución</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

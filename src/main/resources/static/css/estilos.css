@@ -1,0 +1,35 @@
+:root { --azul: #1f3864; --azul-claro: #e8eef9; --verde: #1e7b3c; --rojo: #b42318; --gris: #667085; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f5f7fb; color: #1d2433; }
+.nav { display: flex; align-items: center; gap: 24px; background: var(--azul); color: #fff; padding: 12px 24px; }
+.nav a { color: #fff; text-decoration: none; margin-right: 16px; }
+.nav .logo { font-weight: bold; font-size: 20px; }
+.nav .usuario { margin-left: auto; }
+.contenido { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+.tabla { width: 100%; border-collapse: collapse; background: #fff; }
+.tabla th { background: var(--azul); color: #fff; text-align: left; padding: 10px; }
+.tabla td { padding: 10px; border-bottom: 1px solid #e4e7ec; vertical-align: middle; }
+.alerta { padding: 12px 16px; border-radius: 6px; margin: 12px 0; }
+.alerta-error { background: #fef3f2; color: var(--rojo); border: 1px solid #fecdca; }
+.alerta-seguridad { background: #fff4e5; color: #8a4b00; border: 1px solid #f7c37d; font-weight: bold; }
+.alerta-exito { background: #ecfdf3; color: var(--verde); border: 1px solid #abefc6; }
+.alerta-info { background: var(--azul-claro); color: var(--azul); }
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
+.badge-verde { background: #dcfae6; color: var(--verde); }
+.badge-rojo { background: #fee4e2; color: var(--rojo); }
+button, .boton { background: var(--azul); color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; }
+.btn-rechazar { background: var(--rojo); }
+.btn-aprobar { background: var(--verde); }
+.acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.form-rechazo input { padding: 6px; }
+.filtro { display: flex; gap: 8px; align-items: center; margin: 16px 0; }
+.filtro select, .filtro input { padding: 8px; }
+.formulario { display: grid; gap: 8px; max-width: 360px; }
+.formulario input { padding: 8px; }
+.login-body { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: var(--azul); }
+.login-card { background: #fff; padding: 32px; border-radius: 12px; width: 360px; }
+.login-card h1 { margin: 0; color: var(--azul); }
+.login-card .sub { color: var(--gris); margin-top: 4px; }
+.login-card form { display: grid; gap: 8px; }
+.login-card input { padding: 10px; border: 1px solid #d0d5dd; border-radius: 6px; }
+.login-card button { margin-top: 8px; padding: 10px; }

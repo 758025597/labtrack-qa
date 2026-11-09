@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Catálogo')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="contenido">
+    <h1>Catálogo de equipos</h1>
+
+    <form id="form-filtro" method="get" th:action="@{/catalogo}" class="filtro">
+        <label for="filtro-categoria">Categoría</label>
+        <select id="filtro-categoria" name="categoria">
+            <option value="">Todas</option>
+            <option th:each="c : ${categorias}" th:value="${c.name()}" th:text="${c.etiqueta}"
+                    th:selected="${c.name() == categoriaSeleccionada}"></option>
+        </select>
+        <button id="btn-filtrar" type="submit">Filtrar</button>
+    </form>
+
+    <p id="mensaje-vacio" class="alerta alerta-info" th:if="${mensajeVacio}" th:text="${mensajeVacio}"></p>
+
+    <table id="tabla-equipos" class="tabla" th:unless="${#lists.isEmpty(equipos)}">
+        <thead>
+        <tr><th>Nombre</th><th>Código de inventario</th><th>Categoría</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+        <tr class="fila-equipo" th:each="item : ${equipos}" th:attr="data-codigo=${item.equipo.codigo}">
+            <td class="col-nombre" th:text="${item.equipo.nombre}"></td>
+            <td class="col-codigo" th:text="${item.equipo.codigo}"></td>
+            <td class="col-categoria" th:text="${item.equipo.categoria.etiqueta}"></td>
+            <td class="col-estado"><span th:text="${item.estado.etiqueta}"
+                                         th:classappend="${item.disponible} ? 'badge badge-verde' : 'badge badge-rojo'"></span></td>
+            <td>
+                <a th:if="${item.disponible and rolSesion == 'ESTUDIANTE'}" class="boton btn-reservar"
+                   th:id="'reservar-' + ${item.equipo.codigo}"
+                   th:href="@{/reservas/nueva(equipo=${item.equipo.codigo})}">Reservar</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

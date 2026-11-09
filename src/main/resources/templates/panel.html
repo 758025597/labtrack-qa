@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Mi panel')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="contenido">
+    <h1 id="titulo-panel">Mi panel de préstamos</h1>
+    <p>Estudiante: <strong th:text="${usuario.nombre}"></strong> (<span th:text="${usuario.codigo}"></span>) —
+        Estado: <span id="estado-estudiante" th:text="${usuario.estado.etiqueta}"
+                      th:classappend="${usuario.estado.name() == 'PENALIZADO'} ? 'badge badge-rojo' : 'badge badge-verde'"></span></p>
+
+    <div id="mensaje-exito" class="alerta alerta-exito" th:if="${mensajeExito}" th:text="${mensajeExito}"></div>
+
+    <h2>Mis reservas</h2>
+    <p th:if="${#lists.isEmpty(reservas)}" id="sin-reservas">Aún no tienes reservas. Revisa el <a th:href="@{/catalogo}">catálogo</a>.</p>
+    <table id="tabla-mis-reservas" class="tabla" th:unless="${#lists.isEmpty(reservas)}">
+        <thead><tr><th>Equipo</th><th>Fecha</th><th>Horario</th><th>Estado</th><th>Observación</th></tr></thead>
+        <tbody>
+        <tr th:each="r : ${reservas}">
+            <td th:text="${r.equipo.codigo + ' – ' + r.equipo.nombre}"></td>
+            <td th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></td>
+            <td th:text="${#temporals.format(r.horaInicio, 'HH:mm') + ' - ' + #temporals.format(r.horaFin, 'HH:mm')}"></td>
+            <td class="col-estado" th:text="${r.estado.etiqueta}"></td>
+            <td th:text="${r.motivoRechazo}"></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

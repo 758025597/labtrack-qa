@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'LabTrack – ' + ${titulo}">LabTrack</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+<header th:fragment="nav" class="nav">
+    <span class="logo">LabTrack</span>
+    <nav th:if="${rolSesion == 'ESTUDIANTE'}">
+        <a id="link-panel" th:href="@{/panel}">Mi panel</a>
+        <a id="link-catalogo" th:href="@{/catalogo}">Catálogo</a>
+    </nav>
+    <nav th:if="${rolSesion == 'ENCARGADO'}">
+        <a id="link-solicitudes" th:href="@{/admin/solicitudes}">Solicitudes</a>
+        <a id="link-devoluciones" th:href="@{/admin/devoluciones}">Devoluciones</a>
+        <a id="link-catalogo" th:href="@{/catalogo}">Catálogo</a>
+    </nav>
+    <span class="usuario">
+        <span id="nombre-usuario" th:text="${nombreSesion}">Usuario</span>
+        <a id="link-salir" th:href="@{/logout}">Salir</a>
+    </span>
+</header>
+</body>
+</html>
