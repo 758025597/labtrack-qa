@@ -1,7 +1,8 @@
 package pe.edu.upn.labtrack.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import pe.edu.upn.labtrack.model.Categoria;
 import pe.edu.upn.labtrack.model.Equipo;
@@ -18,27 +19,38 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-/** Carga los datos de demostración y de prueba al iniciar la aplicación. */
+/**
+ * Carga los datos de demostración y de prueba al iniciar la aplicación.
+ * REF-03: las claves ya no están en el código; se leen de la configuración / variables de entorno.
+ */
 @Component
 public class CargaDatosIniciales implements CommandLineRunner {
 
     public static final int USUARIOS_CARGA = 150;
 
-    private static final String ADMIN_PASSWORD = "Admin2026*";
-    private static final String STUDENT_PASSWORD = "Lab2026*";
-    private static final String LOAD_TEST_PASSWORD = "Carga2026*";
+    private final UsuarioRepository usuarioRepository;
+    private final EquipoRepository equipoRepository;
+    private final ReservaRepository reservaRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final Clock clock;
+    private final String claveEncargado;
+    private final String claveEstudiante;
+    private final String claveCarga;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private EquipoRepository equipoRepository;
-
-    @Autowired
-    private ReservaRepository reservaRepository;
-
-    @Autowired
-    private Clock clock;
+    public CargaDatosIniciales(UsuarioRepository usuarioRepository, EquipoRepository equipoRepository,
+                               ReservaRepository reservaRepository, PasswordEncoder passwordEncoder, Clock clock,
+                               @Value("${labtrack.semilla.clave-encargado}") String claveEncargado,
+                               @Value("${labtrack.semilla.clave-estudiante}") String claveEstudiante,
+                               @Value("${labtrack.semilla.clave-carga}") String claveCarga) {
+        this.usuarioRepository = usuarioRepository;
+        this.equipoRepository = equipoRepository;
+        this.reservaRepository = reservaRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.clock = clock;
+        this.claveEncargado = claveEncargado;
+        this.claveEstudiante = claveEstudiante;
+        this.claveCarga = claveCarga;
+    }
 
     @Override
     public void run(String... args) {
@@ -51,14 +63,17 @@ public class CargaDatosIniciales implements CommandLineRunner {
         if (usuarioRepository.count() > 0) {
             return;
         }
-        usuarioRepository.save(new Usuario("ADMIN01", "Encargado de Laboratorio", ADMIN_PASSWORD, Rol.ENCARGADO));
-        usuarioRepository.save(new Usuario("N00123456", "Ana Torres", STUDENT_PASSWORD, Rol.ESTUDIANTE));
-        usuarioRepository.save(new Usuario("N00654321", "Luis Rojas", STUDENT_PASSWORD, Rol.ESTUDIANTE));
-        usuarioRepository.save(new Usuario("N00111222", "María Quispe", STUDENT_PASSWORD, Rol.ESTUDIANTE));
+        String hashEstudiante = passwordEncoder.encode(claveEstudiante);
+        usuarioRepository.save(new Usuario("ADMIN01", "Encargado de Laboratorio",
+                passwordEncoder.encode(claveEncargado), Rol.ENCARGADO));
+        usuarioRepository.save(new Usuario("N00123456", "Ana Torres", hashEstudiante, Rol.ESTUDIANTE));
+        usuarioRepository.save(new Usuario("N00654321", "Luis Rojas", hashEstudiante, Rol.ESTUDIANTE));
+        usuarioRepository.save(new Usuario("N00111222", "María Quispe", hashEstudiante, Rol.ESTUDIANTE));
         // Usuarios para la prueba de carga con JMeter (N00000001 ... N00000150)
+        String hashCarga = passwordEncoder.encode(claveCarga);
         for (int i = 1; i <= USUARIOS_CARGA; i++) {
             String codigo = String.format("N%08d", i);
-            usuarioRepository.save(new Usuario(codigo, "Usuario Carga " + i, LOAD_TEST_PASSWORD, Rol.ESTUDIANTE));
+            usuarioRepository.save(new Usuario(codigo, "Usuario Carga " + i, hashCarga, Rol.ESTUDIANTE));
         }
     }
 
