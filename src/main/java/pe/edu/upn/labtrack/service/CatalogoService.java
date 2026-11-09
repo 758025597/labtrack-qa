@@ -1,6 +1,5 @@
 package pe.edu.upn.labtrack.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.edu.upn.labtrack.model.Categoria;
 import pe.edu.upn.labtrack.model.Equipo;
@@ -19,14 +18,15 @@ import java.util.Set;
 @Service
 public class CatalogoService {
 
-    @Autowired
-    private EquipoRepository equipoRepository;
+    private final EquipoRepository equipoRepository;
+    private final ReservaRepository reservaRepository;
+    private final Clock clock;
 
-    @Autowired
-    private ReservaRepository reservaRepository;
-
-    @Autowired
-    private Clock clock;
+    public CatalogoService(EquipoRepository equipoRepository, ReservaRepository reservaRepository, Clock clock) {
+        this.equipoRepository = equipoRepository;
+        this.reservaRepository = reservaRepository;
+        this.clock = clock;
+    }
 
     public List<EquipoVista> listar(Categoria categoria) {
         List<Equipo> equipos = categoria == null

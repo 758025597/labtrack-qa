@@ -1,7 +1,6 @@
 package pe.edu.upn.labtrack.web;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,17 +13,23 @@ import pe.edu.upn.labtrack.service.LoginResultado;
 @Controller
 public class LoginController {
 
-    @Autowired
-    private AuthService authService;
+    private static final String VISTA_LOGIN = "login";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+
+    private final AuthService authService;
+
+    public LoginController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @GetMapping("/")
     public String inicio() {
-        return "redirect:/login";
+        return REDIRECT_LOGIN;
     }
 
     @GetMapping("/login")
     public String formulario() {
-        return "login";
+        return VISTA_LOGIN;
     }
 
     @PostMapping("/login")
@@ -34,8 +39,8 @@ public class LoginController {
         LoginResultado resultado = authService.login(codigo, password);
         if (resultado.getTipo() == LoginResultado.Tipo.EXITOSO) {
             Usuario usuario = resultado.getUsuario();
-            session.setAttribute("usuarioId", usuario.getId());
-            session.setAttribute("rol", usuario.getRol().name());
+            session.setAttribute(AuthInterceptor.ATRIBUTO_USUARIO, usuario.getId());
+            session.setAttribute(AuthInterceptor.ATRIBUTO_ROL, usuario.getRol().name());
             session.setAttribute("nombre", usuario.getNombre());
             return usuario.esEncargado() ? "redirect:/admin/solicitudes" : "redirect:/panel";
         }
@@ -47,12 +52,12 @@ public class LoginController {
         } else {
             model.addAttribute("mensajeError", "Credenciales inválidas");
         }
-        return "login";
+        return VISTA_LOGIN;
     }
 
     @GetMapping("/logout")
     public String salir(HttpSession session) {
         session.invalidate();
-        return "redirect:/login";
+        return REDIRECT_LOGIN;
     }
 }

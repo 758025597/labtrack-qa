@@ -1,7 +1,7 @@
 package pe.edu.upn.labtrack.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pe.edu.upn.labtrack.model.EstadoReserva;
 import pe.edu.upn.labtrack.model.EstadoUsuario;
 import pe.edu.upn.labtrack.model.Reserva;
@@ -17,14 +17,15 @@ import java.util.List;
 @Service
 public class DevolucionService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final Clock clock;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private Clock clock;
+    public DevolucionService(ReservaRepository reservaRepository, UsuarioRepository usuarioRepository, Clock clock) {
+        this.reservaRepository = reservaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.clock = clock;
+    }
 
     /** Reservas activas (aprobadas y aún no devueltas), filtradas por código/nombre de estudiante o código de equipo. */
     public List<Reserva> activas(String busqueda) {
@@ -44,8 +45,10 @@ public class DevolucionService {
         return filtradas;
     }
 
+    @Transactional
     public ResultadoDevolucion marcarDevolucion(Long reservaId) {
-        Reserva reserva = reservaRepository.findById(reservaId).get();
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new ReglaNegocioException("La reserva no existe."));
         if (reserva.getEstado() != EstadoReserva.APROBADA) {
             throw new ReglaNegocioException("La reserva no está activa.");
         }

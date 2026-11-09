@@ -1,6 +1,5 @@
 package pe.edu.upn.labtrack.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +16,18 @@ import pe.edu.upn.labtrack.service.SolicitudService;
 @Controller
 public class AdminController {
 
-    @Autowired
-    private SolicitudService solicitudService;
+    private static final String MENSAJE_EXITO = "mensajeExito";
+    private static final String MENSAJE_ERROR = "mensajeError";
+    private static final String REDIRECT_SOLICITUDES = "redirect:/admin/solicitudes";
+    private static final String REDIRECT_DEVOLUCIONES = "redirect:/admin/devoluciones";
 
-    @Autowired
-    private DevolucionService devolucionService;
+    private final SolicitudService solicitudService;
+    private final DevolucionService devolucionService;
+
+    public AdminController(SolicitudService solicitudService, DevolucionService devolucionService) {
+        this.solicitudService = solicitudService;
+        this.devolucionService = devolucionService;
+    }
 
     @GetMapping("/admin/solicitudes")
     public String solicitudes(Model model) {
@@ -33,12 +39,12 @@ public class AdminController {
     public String aprobar(@PathVariable Long id, RedirectAttributes flash) {
         try {
             Reserva r = solicitudService.aprobar(id);
-            flash.addFlashAttribute("mensajeExito", "Solicitud aprobada: " + r.getEquipo().getCodigo()
+            flash.addFlashAttribute(MENSAJE_EXITO, "Solicitud aprobada: " + r.getEquipo().getCodigo()
                     + " para " + r.getUsuario().getNombre() + ".");
         } catch (ReglaNegocioException ex) {
-            flash.addFlashAttribute("mensajeError", ex.getMessage());
+            flash.addFlashAttribute(MENSAJE_ERROR, ex.getMessage());
         }
-        return "redirect:/admin/solicitudes";
+        return REDIRECT_SOLICITUDES;
     }
 
     @PostMapping("/admin/solicitudes/{id}/rechazar")
@@ -46,11 +52,11 @@ public class AdminController {
                            RedirectAttributes flash) {
         try {
             solicitudService.rechazar(id, motivo);
-            flash.addFlashAttribute("mensajeExito", "Solicitud rechazada.");
+            flash.addFlashAttribute(MENSAJE_EXITO, "Solicitud rechazada.");
         } catch (ReglaNegocioException ex) {
-            flash.addFlashAttribute("mensajeError", ex.getMessage());
+            flash.addFlashAttribute(MENSAJE_ERROR, ex.getMessage());
         }
-        return "redirect:/admin/solicitudes";
+        return REDIRECT_SOLICITUDES;
     }
 
     @GetMapping("/admin/devoluciones")
@@ -69,10 +75,10 @@ public class AdminController {
             if (resultado.isPenalizado()) {
                 mensaje += " El estudiante " + r.getUsuario().getCodigo() + " fue Penalizado por devolución tardía.";
             }
-            flash.addFlashAttribute("mensajeExito", mensaje);
+            flash.addFlashAttribute(MENSAJE_EXITO, mensaje);
         } catch (ReglaNegocioException ex) {
-            flash.addFlashAttribute("mensajeError", ex.getMessage());
+            flash.addFlashAttribute(MENSAJE_ERROR, ex.getMessage());
         }
-        return "redirect:/admin/devoluciones";
+        return REDIRECT_DEVOLUCIONES;
     }
 }

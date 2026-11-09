@@ -1,7 +1,8 @@
 package pe.edu.upn.labtrack.web;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,19 +26,25 @@ import java.util.List;
 @Controller
 public class EstudianteController {
 
-    @Autowired
-    private CatalogoService catalogoService;
+    private static final Logger log = LoggerFactory.getLogger(EstudianteController.class);
+    private static final String VISTA_RESERVAR = "reservar";
+    private static final String MENSAJE_ERROR = "mensajeError";
+    private static final String BLOQUEADO = "bloqueado";
 
-    @Autowired
-    private ReservaService reservaService;
+    private final CatalogoService catalogoService;
+    private final ReservaService reservaService;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    public EstudianteController(CatalogoService catalogoService, ReservaService reservaService, UsuarioRepository usuarioRepository) {
+        this.catalogoService = catalogoService;
+        this.reservaService = reservaService;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @GetMapping("/panel")
     public String panel(HttpSession session, Model model) {
-        Long usuarioId = (Long) session.getAttribute("usuarioId");
-        model.addAttribute("usuario", usuarioRepository.findById(usuarioId).get());
+        Long usuarioId = usuarioDeSesion(session);
+        model.addAttribute("usuario", usuarioRepository.findById(usuarioId).orElseThrow());
         model.addAttribute("reservas", reservaService.delUsuario(usuarioId));
         return "panel";
     }
@@ -61,14 +68,14 @@ public class EstudianteController {
             Equipo e = reservaService.buscarEquipo(equipo);
             model.addAttribute("equipo", e);
             if (catalogoService.estadoActual(e) == EstadoEquipo.PRESTADO) {
-                model.addAttribute("mensajeError", "El equipo no está disponible para reserva.");
-                model.addAttribute("bloqueado", true);
+                model.addAttribute(MENSAJE_ERROR, "El equipo no está disponible para reserva.");
+                model.addAttribute(BLOQUEADO, true);
             }
         } catch (ReglaNegocioException ex) {
-            model.addAttribute("mensajeError", ex.getMessage());
-            model.addAttribute("bloqueado", true);
+            model.addAttribute(MENSAJE_ERROR, ex.getMessage());
+            model.addAttribute(BLOQUEADO, true);
         }
-        return "reservar";
+        return VISTA_RESERVAR;
     }
 
     @PostMapping("/reservas")
@@ -77,20 +84,28 @@ public class EstudianteController {
                            @RequestParam(required = false) String horaInicio,
                            @RequestParam(required = false) String horaFin,
                            HttpSession session, Model model, RedirectAttributes flash) {
-        Long usuarioId = (Long) session.getAttribute("usuarioId");
+        Long usuarioId = usuarioDeSesion(session);
         try {
             reservaService.crear(usuarioId, equipo, aFecha(fecha), aHora(horaInicio), aHora(horaFin));
             flash.addFlashAttribute("mensajeExito", "Reserva registrada correctamente. Estado: Pendiente de aprobación.");
             return "redirect:/panel";
         } catch (ReglaNegocioException ex) {
-            System.out.println("Reserva rechazada: " + ex.getMessage());
-            model.addAttribute("mensajeError", ex.getMessage());
-            model.addAttribute("equipo", reservaService.buscarEquipo(equipo));
+            log.info("Reserva no registrada para el equipo {}: {}", equipo, ex.getMessage());
+            model.addAttribute(MENSAJE_ERROR, ex.getMessage());
+            try {
+                model.addAttribute("equipo", reservaService.buscarEquipo(equipo));
+            } catch (ReglaNegocioException equipoInexistente) {
+                model.addAttribute(BLOQUEADO, true);
+            }
             model.addAttribute("fecha", fecha);
             model.addAttribute("horaInicio", horaInicio);
             model.addAttribute("horaFin", horaFin);
-            return "reservar";
+            return VISTA_RESERVAR;
         }
+    }
+
+    private Long usuarioDeSesion(HttpSession session) {
+        return (Long) session.getAttribute(AuthInterceptor.ATRIBUTO_USUARIO);
     }
 
     private LocalDate aFecha(String valor) {
