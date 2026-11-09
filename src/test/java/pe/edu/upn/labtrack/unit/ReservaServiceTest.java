@@ -17,6 +17,7 @@ import pe.edu.upn.labtrack.repository.ReservaRepository;
 import pe.edu.upn.labtrack.repository.UsuarioRepository;
 import pe.edu.upn.labtrack.service.CatalogoService;
 import pe.edu.upn.labtrack.service.ReglaNegocioException;
+import pe.edu.upn.labtrack.service.ValidadorCruces;
 import pe.edu.upn.labtrack.service.ReservaService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +27,7 @@ import static pe.edu.upn.labtrack.unit.RelojFijoConfig.HOY;
 import static pe.edu.upn.labtrack.unit.RelojFijoConfig.MANANA;
 
 @DataJpaTest
-@Import({RelojFijoConfig.class, CatalogoService.class, ReservaService.class})
+@Import({RelojFijoConfig.class, CatalogoService.class, ReservaService.class, ValidadorCruces.class})
 @DisplayName("HU-03 Reserva de equipos - reglas de negocio")
 class ReservaServiceTest {
 

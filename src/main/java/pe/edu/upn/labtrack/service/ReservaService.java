@@ -1,10 +1,9 @@
 package pe.edu.upn.labtrack.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pe.edu.upn.labtrack.model.Equipo;
 import pe.edu.upn.labtrack.model.EstadoEquipo;
-import pe.edu.upn.labtrack.model.EstadoReserva;
 import pe.edu.upn.labtrack.model.Reserva;
 import pe.edu.upn.labtrack.model.Usuario;
 import pe.edu.upn.labtrack.repository.EquipoRepository;
@@ -15,27 +14,31 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ReservaService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EquipoRepository equipoRepository;
+    private final CatalogoService catalogoService;
+    private final ValidadorCruces validadorCruces;
+    private final Clock clock;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    public ReservaService(ReservaRepository reservaRepository, UsuarioRepository usuarioRepository,
+                          EquipoRepository equipoRepository, CatalogoService catalogoService,
+                          ValidadorCruces validadorCruces, Clock clock) {
+        this.reservaRepository = reservaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.equipoRepository = equipoRepository;
+        this.catalogoService = catalogoService;
+        this.validadorCruces = validadorCruces;
+        this.clock = clock;
+    }
 
-    @Autowired
-    private EquipoRepository equipoRepository;
-
-    @Autowired
-    private CatalogoService catalogoService;
-
-    @Autowired
-    private Clock clock;
-
+    /** HU-03: registra una solicitud de reserva en estado Pendiente. */
+    @Transactional
     public Reserva crear(Long usuarioId, String codigoEquipo, LocalDate fecha, LocalTime inicio, LocalTime fin) {
         if (fecha == null || inicio == null || fin == null) {
             throw new ReglaNegocioException("Debe completar la fecha, la hora de inicio y la hora de fin.");
@@ -47,41 +50,15 @@ public class ReservaService {
         if (LocalDateTime.of(fecha, inicio).isBefore(ahora)) {
             throw new ReglaNegocioException("No se puede reservar en una fecha u hora pasada.");
         }
-        Usuario usuario = usuarioRepository.findById(usuarioId).get();
+        Usuario usuario = buscarUsuario(usuarioId);
         Equipo equipo = buscarEquipo(codigoEquipo);
         if (catalogoService.estadoActual(equipo) == EstadoEquipo.PRESTADO) {
             throw new ReglaNegocioException("El equipo no está disponible para reserva.");
         }
+        validadorCruces.validarEquipo(equipo, fecha, inicio, fin, ValidadorCruces.SIN_EXCLUIR);
+        validadorCruces.validarEstudiante(usuario, fecha, inicio, fin, ValidadorCruces.SIN_EXCLUIR);
 
-        // Regla CA-9: cruce con reservas aprobadas del equipo
-        List<Reserva> aprobadas = reservaRepository.findByEquipoAndEstado(equipo, EstadoReserva.APROBADA);
-        for (int i = 0; i < aprobadas.size(); i++) {
-            Reserva r = aprobadas.get(i);
-            if (r.getFecha().equals(fecha)) {
-                if (r.getHoraInicio().isBefore(fin)) {
-                    if (r.getHoraFin().isAfter(inicio)) {
-                        throw new ReglaNegocioException("El equipo ya tiene una reserva aprobada que se cruza con ese horario.");
-                    }
-                }
-            }
-        }
-
-        // Regla CA-10: el estudiante no puede tener mas de un equipo a la vez
-        List<Reserva> delEstudiante = reservaRepository.findByUsuarioAndEstadoIn(usuario,
-                Arrays.asList(EstadoReserva.PENDIENTE, EstadoReserva.APROBADA));
-        for (int i = 0; i < delEstudiante.size(); i++) {
-            Reserva r = delEstudiante.get(i);
-            if (r.getFecha().equals(fecha)) {
-                if (r.getHoraInicio().isBefore(fin)) {
-                    if (r.getHoraFin().isAfter(inicio)) {
-                        throw new ReglaNegocioException("Ya tienes un equipo reservado en ese horario. Solo se permite un (1) equipo de forma simultánea.");
-                    }
-                }
-            }
-        }
-
-        Reserva reserva = new Reserva(usuario, equipo, fecha, inicio, fin, ahora);
-        return reservaRepository.save(reserva);
+        return reservaRepository.save(new Reserva(usuario, equipo, fecha, inicio, fin, ahora));
     }
 
     public Equipo buscarEquipo(String codigoEquipo) {
@@ -90,7 +67,11 @@ public class ReservaService {
     }
 
     public List<Reserva> delUsuario(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId).get();
-        return reservaRepository.findByUsuarioOrderByFechaDescHoraInicioDesc(usuario);
+        return reservaRepository.findByUsuarioOrderByFechaDescHoraInicioDesc(buscarUsuario(usuarioId));
+    }
+
+    private Usuario buscarUsuario(Long usuarioId) {
+        return usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ReglaNegocioException("El usuario no existe."));
     }
 }

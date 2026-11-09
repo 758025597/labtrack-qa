@@ -15,10 +15,6 @@ import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
-    List<Reserva> findByEquipoAndEstado(Equipo equipo, EstadoReserva estado);
-
-    List<Reserva> findByUsuarioAndEstadoIn(Usuario usuario, Collection<EstadoReserva> estados);
-
     List<Reserva> findByEstadoOrderByFechaAscHoraInicioAsc(EstadoReserva estado);
 
     List<Reserva> findByUsuarioOrderByFechaDescHoraInicioDesc(Usuario usuario);
@@ -32,4 +28,27 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Long> idsEquiposPrestados(@Param("estado") EstadoReserva estado,
                                    @Param("hoy") LocalDate hoy,
                                    @Param("ahora") LocalTime ahora);
+
+    /**
+     * REF-08: el cruce de horarios se resuelve en la base de datos con una sola consulta
+     * (antes se cargaban todas las reservas y se recorrían con bucles duplicados).
+     * Dos bloques se cruzan si inicioA &lt; finB y finA &gt; inicioB (los bloques contiguos no se cruzan).
+     */
+    @Query("select r from Reserva r where r.equipo = :equipo and r.estado in :estados and r.fecha = :fecha "
+            + "and r.horaInicio < :fin and r.horaFin > :inicio and r.id <> :excluirId")
+    List<Reserva> cruzadasPorEquipo(@Param("equipo") Equipo equipo,
+                                    @Param("estados") Collection<EstadoReserva> estados,
+                                    @Param("fecha") LocalDate fecha,
+                                    @Param("inicio") LocalTime inicio,
+                                    @Param("fin") LocalTime fin,
+                                    @Param("excluirId") Long excluirId);
+
+    @Query("select r from Reserva r where r.usuario = :usuario and r.estado in :estados and r.fecha = :fecha "
+            + "and r.horaInicio < :fin and r.horaFin > :inicio and r.id <> :excluirId")
+    List<Reserva> cruzadasPorUsuario(@Param("usuario") Usuario usuario,
+                                     @Param("estados") Collection<EstadoReserva> estados,
+                                     @Param("fecha") LocalDate fecha,
+                                     @Param("inicio") LocalTime inicio,
+                                     @Param("fin") LocalTime fin,
+                                     @Param("excluirId") Long excluirId);
 }

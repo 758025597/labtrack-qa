@@ -16,6 +16,7 @@ import pe.edu.upn.labtrack.repository.EquipoRepository;
 import pe.edu.upn.labtrack.repository.ReservaRepository;
 import pe.edu.upn.labtrack.repository.UsuarioRepository;
 import pe.edu.upn.labtrack.service.ReglaNegocioException;
+import pe.edu.upn.labtrack.service.ValidadorCruces;
 import pe.edu.upn.labtrack.service.SolicitudService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,7 @@ import static pe.edu.upn.labtrack.unit.DatosPrueba.h;
 import static pe.edu.upn.labtrack.unit.RelojFijoConfig.MANANA;
 
 @DataJpaTest
-@Import({RelojFijoConfig.class, SolicitudService.class})
+@Import({RelojFijoConfig.class, SolicitudService.class, ValidadorCruces.class})
 @DisplayName("HU-04 Gestión de solicitudes")
 class SolicitudServiceTest {
 
@@ -60,6 +61,20 @@ class SolicitudServiceTest {
         Reserva r = DatosPrueba.reserva(reservas, ana, laptop, MANANA, h(10), h(12), EstadoReserva.PENDIENTE);
         solicitudService.aprobar(r.getId());
         assertThat(reservas.findById(r.getId()).orElseThrow().getEstado()).isEqualTo(EstadoReserva.APROBADA);
+    }
+
+    @Test
+    @DisplayName("CP-29 Dos solicitudes del mismo equipo y horario no pueden aprobarse ambas (REF-06)")
+    void cp29NoAprobarDosVeces() {
+        Usuario luis = usuarios.save(new Usuario("N00654321", "Luis Rojas", "x", Rol.ESTUDIANTE));
+        Reserva deAna = DatosPrueba.reserva(reservas, ana, laptop, MANANA, h(10), h(12), EstadoReserva.PENDIENTE);
+        Reserva deLuis = DatosPrueba.reserva(reservas, luis, laptop, MANANA, h(11), h(13), EstadoReserva.PENDIENTE);
+
+        solicitudService.aprobar(deAna.getId());
+        assertThatThrownBy(() -> solicitudService.aprobar(deLuis.getId()))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("reserva aprobada que se cruza");
+        assertThat(reservas.findById(deLuis.getId()).orElseThrow().getEstado()).isEqualTo(EstadoReserva.PENDIENTE);
     }
 
     @Test
