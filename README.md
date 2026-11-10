@@ -71,6 +71,23 @@ Abrir <http://localhost:8080>. Usuarios de demostración:
 > cuenta se completan el código y la contraseña automáticamente. Se puede ocultar con
 > `LABTRACK_DEMO_CUENTAS=false` (propiedad `labtrack.demo.mostrar-cuentas`).
 
+## 4.1 Despliegue en Render (Docker)
+
+El repositorio incluye un `Dockerfile` multi-etapa (Maven + JDK 17 para compilar, JRE 17 Alpine para ejecutar).
+La aplicación escucha en el puerto que Render entrega en la variable `PORT`.
+
+1. En Render: **New → Web Service**, conectar este repositorio y elegir *Runtime: Docker* (detecta el `Dockerfile`).
+2. Opcional: definir las variables `LABTRACK_CLAVE_ESTUDIANTE`, `LABTRACK_CLAVE_ENCARGADO`, `LABTRACK_CLAVE_CARGA`
+   y `LABTRACK_DEMO_CUENTAS` (por defecto se usan las claves de demostración y se muestran en el login).
+3. La base de datos H2 es en memoria: los datos se reinician en cada despliegue o reinicio del servicio.
+
+Para probar la imagen en local:
+
+```bash
+docker build -t labtrack .
+docker run --rm -p 8080:8080 -e PORT=8080 labtrack
+```
+
 ## 5. Pruebas automatizadas
 
 ### 5.1 Pruebas unitarias (reglas de negocio)
