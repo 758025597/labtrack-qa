@@ -66,6 +66,10 @@ Abrir <http://localhost:8080>. Usuarios de demostración:
 
 > Las claves de demostración se pueden cambiar con las variables de entorno
 > `LABTRACK_CLAVE_ESTUDIANTE`, `LABTRACK_CLAVE_ENCARGADO` y `LABTRACK_CLAVE_CARGA`.
+>
+> La pantalla de inicio de sesión muestra un panel **"Cuentas de demostración"**: al hacer clic en una
+> cuenta se completan el código y la contraseña automáticamente. Se puede ocultar con
+> `LABTRACK_DEMO_CUENTAS=false` (propiedad `labtrack.demo.mostrar-cuentas`).
 
 ## 5. Pruebas automatizadas
 
@@ -166,6 +170,8 @@ También se puede abrir `Catalogo.jmx` en la interfaz de JMeter. Ahí se ven el 
 | REF-07 | `System.out.println`, `printStackTrace()` y `Optional.get()` sin verificar | SonarQube (S106, S1148, S3655) | Logger SLF4J y `orElseThrow()` | `5bd9a58` |
 | REF-08 | Lógica de cruce duplicada en bucles anidados que cargaban todas las reservas en memoria | SonarQube (complejidad cognitiva, S1066) | Consultas JPQL y la clase `ValidadorCruces` | `7169b42` |
 | REF-09 | Inyección por atributo (`@Autowired`) y literales repetidos | SonarQube (S6813, S1192) | Inyección por constructor y constantes | `5bd9a58` |
+| REF-10 | El ID de sesión viajaba en la URL (`;jsessionid=...`) al no tener cookie confirmada: riesgo de fijación/robo de sesión | Revisión de código / CP-02 | `server.servlet.session.tracking-modes=cookie` (solo cookie `HttpOnly`) | — |
+| REF-11 | Interfaz poco usable: sin indicadores, sin estados vacíos ni datos de prueba a la vista | Revisión de usabilidad | Rediseño de las vistas (`estilos.css`, plantillas) y panel de cuentas de demostración en el login | — |
 
 Versiones etiquetadas:
 - `v1.0-antes`: código original, para el primer análisis SonarQube.

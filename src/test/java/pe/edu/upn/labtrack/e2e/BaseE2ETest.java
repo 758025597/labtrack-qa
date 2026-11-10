@@ -103,7 +103,17 @@ public abstract class BaseE2ETest {
         abrir("/login");
         escribir(By.id("codigo"), codigo);
         escribir(By.id("password"), clave);
-        driver.findElement(By.id("btn-ingresar")).click();
+        clicYEsperar(By.id("btn-ingresar"));
+    }
+
+    /**
+     * Hace clic en un botón que envía un formulario y espera a que termine la navegación
+     * (la página anterior queda obsoleta). Evita leer la página antes de que el servidor responda.
+     */
+    protected void clicYEsperar(By localizador) {
+        WebElement elemento = driver.findElement(localizador);
+        elemento.click();
+        espera.until(ExpectedConditions.stalenessOf(elemento));
     }
 
     protected void escribir(By localizador, String texto) {
@@ -130,12 +140,12 @@ public abstract class BaseE2ETest {
         if (fin != null) {
             fijarValor(By.id("hora-fin"), fin);
         }
-        driver.findElement(By.id("btn-reservar")).click();
+        clicYEsperar(By.id("btn-reservar"));
     }
 
     protected void filtrarCategoria(String valor) {
         new Select(driver.findElement(By.id("filtro-categoria"))).selectByValue(valor);
-        driver.findElement(By.id("btn-filtrar")).click();
+        clicYEsperar(By.id("btn-filtrar"));
     }
 
     protected String texto(By localizador) {

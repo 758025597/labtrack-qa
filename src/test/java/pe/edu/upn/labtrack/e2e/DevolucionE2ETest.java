@@ -15,8 +15,8 @@ class DevolucionE2ETest extends BaseE2ETest {
         login(ENCARGADO, CLAVE_ENCARGADO);
         abrir("/admin/devoluciones");
         escribir(By.id("buscar"), ANA);
-        driver.findElement(By.id("btn-buscar")).click();
-        driver.findElement(By.id("devolver-" + r.getId())).click();
+        clicYEsperar(By.id("btn-buscar"));
+        clicYEsperar(By.id("devolver-" + r.getId()));
     }
 
     @Test

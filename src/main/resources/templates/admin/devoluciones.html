@@ -2,39 +2,60 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Devoluciones')}"></head>
 <body>
-<header th:replace="~{fragments :: nav}"></header>
+<header th:replace="~{fragments :: nav('devoluciones')}"></header>
 <main class="contenido">
-    <h1 id="titulo-devoluciones">Registrar devolución</h1>
+    <div class="encabezado">
+        <div>
+            <h1 id="titulo-devoluciones">Registrar devolución</h1>
+            <p>Busca el préstamo activo y márcalo como devuelto. El equipo volverá a estar disponible; si la devolución es tardía, el estudiante queda penalizado.</p>
+        </div>
+        <span class="badge badge-aprobada" th:text="${#lists.size(reservas)} + ' préstamo(s) activo(s)'">0 préstamo(s) activo(s)</span>
+    </div>
 
     <div id="mensaje-exito" class="alerta alerta-exito" th:if="${mensajeExito}" th:text="${mensajeExito}"></div>
     <div id="mensaje-error" class="alerta alerta-error" th:if="${mensajeError}" th:text="${mensajeError}"></div>
 
     <form id="form-buscar" method="get" th:action="@{/admin/devoluciones}" class="filtro">
-        <label for="buscar">Buscar reserva activa</label>
-        <input id="buscar" name="q" type="text" th:value="${q}" placeholder="Código de estudiante o de equipo">
+        <label for="buscar">Buscar préstamo activo</label>
+        <input id="buscar" name="q" type="text" th:value="${q}" placeholder="Código de estudiante (N00123456) o de equipo (EQ-001)">
         <button id="btn-buscar" type="submit">Buscar</button>
+        <a class="boton boton-secundario" th:href="@{/admin/devoluciones}" th:unless="${#strings.isEmpty(q)}">Limpiar</a>
     </form>
 
-    <p id="sin-resultados" class="alerta alerta-info" th:if="${#lists.isEmpty(reservas)}">Sin resultados</p>
+    <section class="tarjeta" th:if="${#lists.isEmpty(reservas)}">
+        <div class="vacio">
+            <svg th:replace="~{fragments :: icono-vacio}"></svg>
+            <p id="sin-resultados">Sin resultados</p>
+        </div>
+    </section>
 
-    <table id="tabla-devoluciones" class="tabla" th:unless="${#lists.isEmpty(reservas)}">
-        <thead>
-        <tr><th>Estudiante</th><th>Equipo</th><th>Fecha</th><th>Horario</th><th>Acción</th></tr>
-        </thead>
-        <tbody>
-        <tr class="fila-reserva" th:each="r : ${reservas}" th:id="'reserva-' + ${r.id}">
-            <td th:text="${r.usuario.nombre + ' (' + r.usuario.codigo + ')'}"></td>
-            <td th:text="${r.equipo.codigo + ' – ' + r.equipo.nombre}"></td>
-            <td th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></td>
-            <td th:text="${#temporals.format(r.horaInicio, 'HH:mm') + ' - ' + #temporals.format(r.horaFin, 'HH:mm')}"></td>
-            <td>
-                <form method="post" th:action="@{/admin/devoluciones/{id}(id=${r.id})}">
-                    <button type="submit" class="boton btn-devolver" th:id="'devolver-' + ${r.id}">Marcar Devolución</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <section class="tabla-contenedor" th:unless="${#lists.isEmpty(reservas)}">
+        <table id="tabla-devoluciones" class="tabla">
+            <thead>
+            <tr><th>Estudiante</th><th>Equipo</th><th>Fecha</th><th>Horario</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+            <tr class="fila-reserva" th:each="r : ${reservas}" th:id="'reserva-' + ${r.id}">
+                <td>
+                    <span class="principal" th:text="${r.usuario.nombre}">Estudiante</span>
+                    <span class="secundario codigo" th:text="${r.usuario.codigo}">N00000000</span>
+                </td>
+                <td>
+                    <span class="principal" th:text="${r.equipo.nombre}">Equipo</span>
+                    <span class="secundario codigo" th:text="${r.equipo.codigo}">EQ-000</span>
+                </td>
+                <td th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></td>
+                <td th:text="${#temporals.format(r.horaInicio, 'HH:mm') + ' - ' + #temporals.format(r.horaFin, 'HH:mm')}"></td>
+                <td>
+                    <form method="post" th:action="@{/admin/devoluciones/{id}(id=${r.id})}">
+                        <button type="submit" class="boton btn-devolver" th:id="'devolver-' + ${r.id}">Marcar devolución</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 </main>
+<footer th:replace="~{fragments :: pie}"></footer>
 </body>
 </html>

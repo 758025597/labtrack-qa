@@ -1,6 +1,7 @@
 package pe.edu.upn.labtrack.web;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,16 +11,35 @@ import pe.edu.upn.labtrack.model.Usuario;
 import pe.edu.upn.labtrack.service.AuthService;
 import pe.edu.upn.labtrack.service.LoginResultado;
 
+import java.util.List;
+
 @Controller
 public class LoginController {
 
     private static final String VISTA_LOGIN = "login";
     private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String ATRIBUTO_CUENTAS_DEMO = "cuentasDemo";
 
     private final AuthService authService;
+    private final List<CuentaDemo> cuentasDemo;
 
-    public LoginController(AuthService authService) {
+    /**
+     * Las cuentas de demostración se arman con las mismas claves configuradas para la carga inicial
+     * (REF-03: vienen de la configuración / variables de entorno, no del código) y se muestran en el
+     * login solo si {@code labtrack.demo.mostrar-cuentas} está activo.
+     */
+    public LoginController(AuthService authService,
+                           @Value("${labtrack.demo.mostrar-cuentas:true}") boolean mostrarCuentasDemo,
+                           @Value("${labtrack.semilla.clave-estudiante}") String claveEstudiante,
+                           @Value("${labtrack.semilla.clave-encargado}") String claveEncargado) {
         this.authService = authService;
+        this.cuentasDemo = mostrarCuentasDemo
+                ? List.of(
+                        new CuentaDemo("Ana Torres", "N00123456", claveEstudiante, "Estudiante", false),
+                        new CuentaDemo("Luis Rojas", "N00654321", claveEstudiante, "Estudiante", false),
+                        new CuentaDemo("María Quispe", "N00111222", claveEstudiante, "Estudiante", false),
+                        new CuentaDemo("Encargado de Laboratorio", "ADMIN01", claveEncargado, "Encargado", true))
+                : List.of();
     }
 
     @GetMapping("/")
@@ -28,7 +48,8 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String formulario() {
+    public String formulario(Model model) {
+        agregarCuentasDemo(model);
         return VISTA_LOGIN;
     }
 
@@ -52,6 +73,7 @@ public class LoginController {
         } else {
             model.addAttribute("mensajeError", "Credenciales inválidas");
         }
+        agregarCuentasDemo(model);
         return VISTA_LOGIN;
     }
 
@@ -59,5 +81,11 @@ public class LoginController {
     public String salir(HttpSession session) {
         session.invalidate();
         return REDIRECT_LOGIN;
+    }
+
+    private void agregarCuentasDemo(Model model) {
+        if (!cuentasDemo.isEmpty()) {
+            model.addAttribute(ATRIBUTO_CUENTAS_DEMO, cuentasDemo);
+        }
     }
 }

@@ -2,27 +2,51 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Reservar equipo')}"></head>
 <body>
-<header th:replace="~{fragments :: nav}"></header>
+<header th:replace="~{fragments :: nav('catalogo')}"></header>
 <main class="contenido">
-    <h1>Reservar equipo</h1>
-    <p th:if="${equipo}" id="equipo-seleccionado">
-        <strong th:text="${equipo.codigo}"></strong> – <span th:text="${equipo.nombre}"></span>
-        (<span th:text="${equipo.categoria.etiqueta}"></span>)
-    </p>
+    <div class="encabezado">
+        <div>
+            <p class="miga"><a th:href="@{/catalogo}">Catálogo</a> › Reservar</p>
+            <h1>Reservar equipo</h1>
+            <p>Indica la fecha y el horario en que usarás el equipo. La solicitud quedará pendiente hasta que el encargado la apruebe.</p>
+        </div>
+    </div>
+
+    <div th:if="${equipo}" id="equipo-seleccionado" class="ficha">
+        <span class="icono"><svg th:replace="~{fragments :: icono-equipo}"></svg></span>
+        <span>
+            <strong th:text="${equipo.nombre}">Equipo</strong>
+            <span class="codigo" th:text="${equipo.codigo}">EQ-000</span>
+            · <span class="etiqueta" th:classappend="'etiqueta-' + ${equipo.categoria.name()}" th:text="${equipo.categoria.etiqueta}">Categoría</span>
+        </span>
+    </div>
 
     <div id="mensaje-error" class="alerta alerta-error" th:if="${mensajeError}" th:text="${mensajeError}"></div>
 
-    <form id="form-reserva" method="post" th:action="@{/reservas}" th:unless="${bloqueado}" novalidate class="formulario">
-        <input type="hidden" name="equipo" th:value="${equipo.codigo}">
-        <label for="fecha">Fecha de uso</label>
-        <input id="fecha" name="fecha" type="date" th:value="${fecha}">
-        <label for="hora-inicio">Hora de inicio</label>
-        <input id="hora-inicio" name="horaInicio" type="time" th:value="${horaInicio}">
-        <label for="hora-fin">Hora de fin</label>
-        <input id="hora-fin" name="horaFin" type="time" th:value="${horaFin}">
-        <button id="btn-reservar" type="submit">Solicitar reserva</button>
-    </form>
-    <p><a id="link-volver" th:href="@{/catalogo}">← Volver al catálogo</a></p>
+    <section class="tarjeta" th:unless="${bloqueado}">
+        <form id="form-reserva" method="post" th:action="@{/reservas}" novalidate class="formulario">
+            <input type="hidden" name="equipo" th:value="${equipo.codigo}">
+            <div class="fila">
+                <div class="campo">
+                    <label for="fecha">Fecha de uso</label>
+                    <input id="fecha" name="fecha" type="date" th:value="${fecha}">
+                </div>
+                <div class="campo">
+                    <label for="hora-inicio">Hora de inicio</label>
+                    <input id="hora-inicio" name="horaInicio" type="time" th:value="${horaInicio}">
+                </div>
+                <div class="campo">
+                    <label for="hora-fin">Hora de fin</label>
+                    <input id="hora-fin" name="horaFin" type="time" th:value="${horaFin}">
+                </div>
+            </div>
+            <p class="ayuda">Solo puedes tener un equipo reservado por horario. No se permiten fechas pasadas ni cruces con reservas aprobadas.</p>
+            <button id="btn-reservar" type="submit" class="btn-reservar">Solicitar reserva</button>
+        </form>
+    </section>
+
+    <p><a id="link-volver" class="boton boton-secundario" th:href="@{/catalogo}">← Volver al catálogo</a></p>
 </main>
+<footer th:replace="~{fragments :: pie}"></footer>
 </body>
 </html>

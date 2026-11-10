@@ -4,24 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="'LabTrack – ' + ${titulo}">LabTrack</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
 </head>
 <body>
-<header th:fragment="nav" class="nav">
-    <span class="logo">LabTrack</span>
+
+<!-- Isotipo: matraz de laboratorio -->
+<svg th:fragment="logo" viewBox="0 0 64 64" role="img" aria-label="LabTrack" xmlns="http://www.w3.org/2000/svg">
+    <rect width="64" height="64" rx="14" fill="#ffffff" fill-opacity=".14"/>
+    <path d="M26 12h12v4h-2v14.5l12.6 19.3A4 4 0 0 1 45.3 56H18.7a4 4 0 0 1-3.3-6.2L28 30.5V16h-2z" fill="#ffffff"/>
+    <path d="M22.5 44h19l5 8h-29z" fill="#5eead4"/>
+</svg>
+
+<header th:fragment="nav(activo)" class="nav">
+    <a class="logo" th:href="${rolSesion == 'ENCARGADO'} ? @{/admin/solicitudes} : @{/panel}">
+        <svg th:replace="~{fragments :: logo}"></svg>
+        <span>LabTrack</span>
+    </a>
     <nav th:if="${rolSesion == 'ESTUDIANTE'}">
-        <a id="link-panel" th:href="@{/panel}">Mi panel</a>
-        <a id="link-catalogo" th:href="@{/catalogo}">Catálogo</a>
+        <a id="link-panel" th:href="@{/panel}" th:classappend="${activo == 'panel'} ? 'activo'">Mi panel</a>
+        <a id="link-catalogo" th:href="@{/catalogo}" th:classappend="${activo == 'catalogo'} ? 'activo'">Catálogo</a>
     </nav>
     <nav th:if="${rolSesion == 'ENCARGADO'}">
-        <a id="link-solicitudes" th:href="@{/admin/solicitudes}">Solicitudes</a>
-        <a id="link-devoluciones" th:href="@{/admin/devoluciones}">Devoluciones</a>
-        <a id="link-catalogo" th:href="@{/catalogo}">Catálogo</a>
+        <a id="link-solicitudes" th:href="@{/admin/solicitudes}" th:classappend="${activo == 'solicitudes'} ? 'activo'">Solicitudes</a>
+        <a id="link-devoluciones" th:href="@{/admin/devoluciones}" th:classappend="${activo == 'devoluciones'} ? 'activo'">Devoluciones</a>
+        <a id="link-catalogo" th:href="@{/catalogo}" th:classappend="${activo == 'catalogo'} ? 'activo'">Catálogo</a>
     </nav>
     <span class="usuario">
-        <span id="nombre-usuario" th:text="${nombreSesion}">Usuario</span>
-        <a id="link-salir" th:href="@{/logout}">Salir</a>
+        <span class="avatar" th:text="${nombreSesion != null} ? ${#strings.substring(nombreSesion, 0, 1)} : '?'">A</span>
+        <span class="usuario-datos">
+            <strong id="nombre-usuario" th:text="${nombreSesion}">Usuario</strong>
+            <small th:text="${rolSesion == 'ENCARGADO'} ? 'Encargado' : 'Estudiante'">Rol</small>
+        </span>
+        <a id="link-salir" class="salir" th:href="@{/logout}">Salir</a>
     </span>
 </header>
+
+<footer th:fragment="pie" class="pie">
+    LabTrack · Sistema de Gestión de Laboratorios · UPN – Calidad y Pruebas de Software · 2026-II
+</footer>
+
+<!-- Ícono de estado vacío (caja abierta) -->
+<svg th:fragment="icono-vacio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 9.5 12 4l9 5.5-9 5.5z"/><path d="M3 9.5V17l9 5 9-5V9.5"/><path d="M12 15v7"/>
+</svg>
+
+<!-- Ícono de equipo (laptop) -->
+<svg th:fragment="icono-equipo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="5" width="18" height="11" rx="2"/><path d="M2 19h20"/>
+</svg>
 </body>
 </html>

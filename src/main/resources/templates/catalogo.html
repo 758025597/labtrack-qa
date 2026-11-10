@@ -2,41 +2,58 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Catálogo')}"></head>
 <body>
-<header th:replace="~{fragments :: nav}"></header>
+<header th:replace="~{fragments :: nav('catalogo')}"></header>
 <main class="contenido">
-    <h1>Catálogo de equipos</h1>
+    <div class="encabezado">
+        <div>
+            <h1>Catálogo de equipos</h1>
+            <p>Consulta la disponibilidad de los equipos del laboratorio y reserva el que necesites.</p>
+        </div>
+    </div>
+
+    <section class="indicadores" th:unless="${#lists.isEmpty(equipos)}"
+             th:with="disponibles=${equipos.?[disponible].size()}">
+        <div class="indicador azul"><span>Equipos listados</span><strong th:text="${#lists.size(equipos)}">0</strong></div>
+        <div class="indicador verde"><span>Disponibles</span><strong th:text="${disponibles}">0</strong></div>
+        <div class="indicador rojo"><span>Prestados</span><strong th:text="${#lists.size(equipos) - disponibles}">0</strong></div>
+    </section>
 
     <form id="form-filtro" method="get" th:action="@{/catalogo}" class="filtro">
         <label for="filtro-categoria">Categoría</label>
         <select id="filtro-categoria" name="categoria">
-            <option value="">Todas</option>
+            <option value="">Todas las categorías</option>
             <option th:each="c : ${categorias}" th:value="${c.name()}" th:text="${c.etiqueta}"
                     th:selected="${c.name() == categoriaSeleccionada}"></option>
         </select>
         <button id="btn-filtrar" type="submit">Filtrar</button>
+        <a class="boton boton-secundario" th:href="@{/catalogo}" th:unless="${#strings.isEmpty(categoriaSeleccionada)}">Limpiar</a>
     </form>
 
     <p id="mensaje-vacio" class="alerta alerta-info" th:if="${mensajeVacio}" th:text="${mensajeVacio}"></p>
 
-    <table id="tabla-equipos" class="tabla" th:unless="${#lists.isEmpty(equipos)}">
-        <thead>
-        <tr><th>Nombre</th><th>Código de inventario</th><th>Categoría</th><th>Estado</th><th>Acción</th></tr>
-        </thead>
-        <tbody>
-        <tr class="fila-equipo" th:each="item : ${equipos}" th:attr="data-codigo=${item.equipo.codigo}">
-            <td class="col-nombre" th:text="${item.equipo.nombre}"></td>
-            <td class="col-codigo" th:text="${item.equipo.codigo}"></td>
-            <td class="col-categoria" th:text="${item.equipo.categoria.etiqueta}"></td>
-            <td class="col-estado"><span th:text="${item.estado.etiqueta}"
-                                         th:classappend="${item.disponible} ? 'badge badge-verde' : 'badge badge-rojo'"></span></td>
-            <td>
-                <a th:if="${item.disponible and rolSesion == 'ESTUDIANTE'}" class="boton btn-reservar"
-                   th:id="'reservar-' + ${item.equipo.codigo}"
-                   th:href="@{/reservas/nueva(equipo=${item.equipo.codigo})}">Reservar</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <section class="tabla-contenedor" th:unless="${#lists.isEmpty(equipos)}">
+        <table id="tabla-equipos" class="tabla">
+            <thead>
+            <tr><th>Nombre</th><th>Código de inventario</th><th>Categoría</th><th>Estado</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+            <tr class="fila-equipo" th:each="item : ${equipos}" th:attr="data-codigo=${item.equipo.codigo}">
+                <td class="col-nombre principal" th:text="${item.equipo.nombre}"></td>
+                <td class="col-codigo codigo" th:text="${item.equipo.codigo}"></td>
+                <td class="col-categoria"><span class="etiqueta" th:classappend="'etiqueta-' + ${item.equipo.categoria.name()}" th:text="${item.equipo.categoria.etiqueta}"></span></td>
+                <td class="col-estado"><span th:text="${item.estado.etiqueta}"
+                                             th:classappend="${item.disponible} ? 'badge badge-verde' : 'badge badge-rojo'"></span></td>
+                <td>
+                    <a th:if="${item.disponible and rolSesion == 'ESTUDIANTE'}" class="boton btn-reservar"
+                       th:id="'reservar-' + ${item.equipo.codigo}"
+                       th:href="@{/reservas/nueva(equipo=${item.equipo.codigo})}">Reservar</a>
+                    <span th:if="${!item.disponible and rolSesion == 'ESTUDIANTE'}" class="no-disponible">No disponible</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 </main>
+<footer th:replace="~{fragments :: pie}"></footer>
 </body>
 </html>

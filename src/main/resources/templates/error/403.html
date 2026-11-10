@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>LabTrack – Acceso denegado</title>
-    <link rel="stylesheet" th:href="@{/css/estilos.css}">
-</head>
-<body>
-<main class="contenido">
+<head th:replace="~{fragments :: head('Acceso denegado')}"></head>
+<body class="error-body">
+<main class="error-card">
+    <div class="icono">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/>
+        </svg>
+    </div>
     <h1 id="acceso-denegado">Acceso denegado</h1>
-    <p>No tienes permisos para ver esta página.</p>
-    <p><a th:href="@{/panel}">Volver a mi panel</a></p>
+    <p>No tienes permisos para ver esta página. Esta sección está reservada al encargado de laboratorio.</p>
+    <div class="acciones">
+        <a class="boton" th:href="@{/panel}">Volver a mi panel</a>
+        <a class="boton boton-secundario" th:href="@{/catalogo}">Ir al catálogo</a>
+    </div>
 </main>
 </body>
 </html>
